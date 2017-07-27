@@ -1,0 +1,124 @@
+---
+title: "South African Heart Disease"
+author: "Kevin OKiah"
+date: "July 25, 2017"
+output: html_document
+---
+
+
+### Data
+A retrospective sample of males in a heart-disease high-risk region
+of the Western Cape, South Africa. There are roughly two controls per
+case of CHD. Many of the CHD positive men have undergone blood
+pressure reduction treatment and other programs to reduce their risk
+factors after their CHD event. In some cases the measurements were
+made after these treatments. These data are taken from a larger
+dataset, described in  Rousseauw et al, 1983, South African Medical
+Journal. 
+
+1. sbp		systolic blood pressure
+2. tobacco		cumulative tobacco (kg)
+3. ldl		low densiity lipoprotein cholesterol
+4. adiposity
+5. famhist		family history of heart disease (Present, Absent)
+6. typea		type-A behavior
+7. obesity
+8. alcohol		current alcohol consumption
+9. age		age at onset
+10. chd		response, coronary heart disease
+
+Data Source of this data is ==>>> http://web.stanford.edu/~hastie/ElemStatLearn/
+
+
+
+```{r echo=FALSE}
+pacman::p_load(pacman, dplyr, ggplot2, aod)
+```
+
+
+#### Pull in the data and describe the data
+```{r }
+Heart_data<-read.table("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+
+#check Dimensions
+dim(Heart_data)
+
+
+#Peak at the data
+head(Heart_data)
+
+
+```
+#Create  new varible Age group
+# <20, 20-30, 31-40, 41-50, 51-60, >60
+# Name the levels of 'Age_Group' for readability
+```{r}
+
+Heart_data$Age_Group <- cut(Heart_data$age, c(-Inf, 20, 31, 41, 51, 60, Inf))
+
+levels(Heart_data$Age_Group) <- c("<20", "20-30", "31-40", "41-50", "51-60", "61+")
+
+head(Heart_data)
+tail(Heart_data)
+```
+
+# Summary Statistics
+```{r}
+summary(Heart_data)
+```
+#look at the standard deviation
+```{r}
+lapply(Heart_data, sd)
+```
+## two-way contingency table of categorical outcome and predictors we want
+## to make sure there are not 0 cells
+```{r}
+xtabs(~famhist + Age_Group, data = Heart_data)
+```
+
+### Visualizations
+
+```{r}
+
+```
+
+### Column names
+```{r}
+names(Heart_data)
+```
+
+
+### Using the logit model
+```{r}
+Heart_data$Age_Group <- factor(Heart_data$Age_Group)
+mylogit <- glm(famhist ~ sbp + tobacco + ldl + adiposity + typea +obesity + alcohol +chd + Age_Group,  data = Heart_data, family = "binomial")
+
+summary(mylogit)
+```
+
+```{r}
+
+Heart_data$Age_Group <- factor(Heart_data$Age_Group)
+#got rid of the less significant varibles
+mylogit <- glm(famhist ~  tobacco + ldl  + alcohol +chd + Age_Group,  data = Heart_data, family = "binomial")
+
+summary(mylogit)
+```
+
+```{r}
+## CIs using profiled log-likelihood
+confint(mylogit)
+```
+
+```{r}
+## CIs using standard errors
+confint.default(mylogit)
+```
+
+
+testing for an overall effect of Age_Group using the wald.test function of the aod library.
+```{r}
+wald.test(b = coef(mylogit), Sigma = vcov(mylogit), Terms = 6:10)
+```
+The chi-squared test statistic of 11.1, with 5 degrees of freedom is associated with a p-value of 0.05 indicating that the overall effect of Age_group is statistically significant?
+
