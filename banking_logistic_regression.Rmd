@@ -1,0 +1,333 @@
+---
+title: "Banking_Logistics_regrission"
+output: html_document
+---
+
+```{r}
+#load the required packages
+pacman::p_load(pacman, dplyr, ggplot2, readr, scales,gridExtra, formattable)
+
+```
+
+```{r}
+# load data
+my_data<-read.table('Train.csv', sep =",", header = TRUE)
+
+dim(my_data)
+
+#Create a new binary column  Subscribed based on y
+my_data<-mutate(my_data, Subscribed=ifelse(my_data$y=='no',0,1))
+
+my_data$Subscribed<-as.factor(my_data$Subscribed)# convert the Subscribed column to factors
+
+#check structure of the data
+str(my_data)
+```
+```{r}
+#create a test and train dataset but subseting the dataset into two halfs randomly selected for 50-50 cross validation
+#indexes = sample(1:nrow(my_data), size=0.8*nrow(my_data)) # Random sample of 50% of row numbers created
+#head(indexes)
+
+
+#Train <- my_data[indexes,] # Training data contains created indices
+#Test <- my_data[-indexes,] # Test data contains the rest
+
+#write.csv(Train, file = "Train.csv")
+
+#write.csv(Test, file = "Test.csv")
+Train=my_data
+```
+
+```{r}
+#peek ar the data
+#my_data = Train
+head(my_data)
+#summary(my_data)
+```
+
+
+```{r}
+#Missing values are marked as unknown. count number of missing values by column
+
+count_unknown<-function(v){length(v[v=="unknown"])}
+
+unknown <-sapply(my_data, count_unknown)
+unknown
+
+#number if rows
+#nrow(my_data)
+```
+```{r}
+#creating a new varible agegroup
+# agegroups = 19-20, 30-45, 45-65, 65++
+my_data$Age_Group <- cut(my_data$age, c(-Inf, 20, 30, 45, 65, Inf))
+
+# Name the levels of 'Age_Group' for readability
+levels(my_data$Age_Group) <- c("<20","20-30", "31-45", "46-64", "65+")
+
+head(my_data)
+
+#count by age group
+my_data%>%
+  group_by(Age_Group)%>%
+  summarise(Count = n())
+
+#histrogram of age distrubions color coded by subscription/y
+ggplot(my_data, aes(duration, fill = Subscribed)) +
+  geom_histogram(binwidth = 50, bins = 1000)+ theme_light()+labs(title="Histogram of duration")+ theme(plot.title = element_text(hjust = 0.5))
+
+# Age rgoups Spread
+ggplot(my_data, aes(x=Age_Group)) +
+  geom_bar(position = "dodge")+stat_count(mapping=aes(x=Age_Group,y=..prop..))+labs(title = "Age_group Spead")
+
+Age_group.Stats <- my_data%>%
+  group_by(Age_Group, Subscribed) %>%
+  summarize(Number = n())%>%transmute(Subscribed,Number,percentage = round(100*Number/sum(Number), 2))
+
+print(data.frame(Age_group.Stats))
+
+```
+```{r}
+avgduration <-mean(my_data$duration)
+mean_d <- data.frame( x = c(-Inf, Inf), y = avgduration, mean_d = factor(avgduration) )
+
+ggplot(my_data, aes(y =duration, x = Subscribed, fill = Subscribed)) +
+  geom_boxplot()+ theme_light()+labs(title=" Subscribed vs Contact Duration", y = "duration in seconds")+ theme(plot.title = element_text(hjust = 0.5))+geom_hline(yintercept = avgduration, colour="red", linetype="dashed", size=1) +annotate("text", 2.45, avgduration+90, label = paste0("Avg=", round(avgduration, 1)), color ="black" )+scale_fill_manual(values=c("#999999", "#E69F00"))
+```
+
+
+
+
+```{r}
+#create a new variable Quarters a derivative of months listing the four quarters in a year
+
+# Quarter = Q1, Q2, Q3, Q4
+
+my_data<-mutate(my_data,Quarter=ifelse(my_data$month =='jan'|my_data$month =='feb'|my_data$month =='mar','Q1',
+                              ifelse(my_data$month =='apr'|my_data$month =='may'|my_data$month =='jun','Q2',
+                                     ifelse(my_data$month =='jul'|my_data$month =='aug'|my_data$month =='sep','Q3',
+                                            ifelse(my_data$month =='oct'|my_data$month =='nov'|my_data$month =='dec','Q4','NA')))))
+
+head(my_data)
+```
+```{r}
+#subscription by Quarter
+ggplot(my_data, aes(x=Quarter,fill=Subscribed)) +
+  geom_bar(position = "dodge")+stat_count(mapping=aes(x=Quarter,y=..prop..))+labs(title = "Subscription by Quarter")# + coord_flip()
+
+#print stats table
+Quarter.Stats <- my_data%>%
+  group_by(Quarter, Subscribed) %>%
+  summarize(Number = n())%>%transmute(Subscribed,Number,percentage = round(100*Number/sum(Number), 2))
+
+print(data.frame(Quarter.Stats))
+```
+
+```{r}
+#subscription by Job
+ggplot(my_data, aes(x=job,fill=Subscribed)) +
+  geom_bar(position = "dodge")+stat_count(mapping=aes(x=job,y=..prop..))+labs(title = "Subscription by job")+ coord_flip()
+
+#print stats table
+job.Stats <- my_data%>%
+  group_by(job, Subscribed) %>%
+  summarize(Number = n())%>%transmute(Subscribed,Number,percentage = round(100*Number/sum(Number), 2))
+
+print(data.frame(job.Stats))
+```
+```{r}
+#subscription by Education
+ggplot(my_data, aes(x=education,fill=Subscribed)) +
+  geom_bar(position = "dodge")+stat_count(mapping=aes(x=education,y=..prop..))+labs(title = "Subscription by education")# + coord_flip()
+
+#print stats table
+educ.Stats <- my_data%>%
+  group_by(education, Subscribed) %>%
+  summarize(Number = n())%>%transmute(Subscribed,Number,percentage = round(100*Number/sum(Number), 2))
+
+print(data.frame(educ.Stats))
+```
+
+#plotting side by side Box plots of continous variables
+```{r}
+head(my_data)
+
+
+#Boxplot of balance by subscription/y
+A= ggplot(my_data, aes(y =balance, x = Subscribed, fill = Subscribed)) +
+  geom_boxplot()+ theme_light()+labs(title="Yearly Avg balance ")+ theme(plot.title = element_text(hjust = 0.5))
+
+#last contact duration, in seconds (numeric)
+B =ggplot(my_data, aes(y =duration, x = Subscribed, fill = Subscribed)) +
+  geom_boxplot()+ theme_light()+labs(title=" Contact duration")+ theme(plot.title = element_text(hjust = 0.5))
+
+#campaign: number of contacts performed during this campaign and for this client
+C =ggplot(my_data, aes(y =campaign, x = Subscribed, fill = Subscribed)) +
+  geom_boxplot()+ theme_light()+labs(title=" # of Campaign Contact ")+ theme(plot.title = element_text(hjust = 0.5))
+
+#pdays: number of days that passed by after the client was last contacted from a previous campaign 
+D =ggplot(my_data, aes(y =pdays, x = Subscribed, fill = Subscribed)) +
+  geom_boxplot()+ theme_light()+labs(title="pdays after last Contact")+ theme(plot.title = element_text(hjust = 0.5))
+
+#previous: number of contacts performed before this campaign and for this client (numeric)
+E =ggplot(my_data, aes(y =previous, x = Subscribed, fill = Subscribed)) +
+  geom_boxplot()+ theme_light()+labs(title=" # of previous Contacts ")+ theme(plot.title = element_text(hjust = 0.5))
+
+
+
+#plots
+A
+B
+C
+D
+E
+
+grid.arrange(A, B,C, D, E,  ncol=3)
+```
+
+
+
+
+```{r}
+#logistic model on training data
+Train$default<-relevel(Train$default, ref='no')
+LogisticModelFull_train <- glm(Subscribed~Age_Group+job+education+default+housing+ marital+loan+contact+day+month+duration+campaign+poutcome+pdays+previous,family=binomial(link="logit"), data =Train)
+
+summary(LogisticModelFull_train)
+#pull out Pvalues only
+coefficient = data.frame(summary(LogisticModelFull_train)$coef[,4])
+
+names(coefficient)<-c("Pvalue")
+
+color.picker <- function(z){
+  if(is.na(z)){return("black")}
+  else if(z > 0.05){return("red")}
+  else {return("darkgreen")}
+}
+
+bg.picker <- function(z){
+  if(is.na(z)){return("black")}
+  else if(z > 0.05){return("pink")}
+  else {return("lightgreen")}
+}
+
+formattable(coefficient, list(
+   Pvalue= formatter("span",
+       style = x ~ style(display = "block", "border-radius" = "10px",
+       "padding-right" = "10px",
+       "background-color" = sapply(x,bg.picker)),
+   x ~ sprintf("%.4f (rank: %02d)", x, rank(x))))
+   )
+
+
+
+#coefficient
+```
+```{r}
+# Find exponential odds ratio as:
+#exp(coef(LogisticModelFull_train))
+ 
+# Or better still with 95% confidence interval, as:
+exp(cbind(OddsRatio=coef(LogisticModelFull_train),confint(LogisticModelFull_train)))
+
+#with a unit increase in number of retired persons odds increase by a factor of 1.85 that a term deposit would be taken
+```
+
+
+```{r}
+#logistic regression Final model on training data with reduced variables
+#Z-score <2 removed since they are not significant
+Train$contact<-relevel(Train$contact, ref='unknown')
+LogisticModelFinal_train <- glm(Subscribed~loan+contact+duration+poutcome,family=binomial(link=logit), data =Train)
+summary(LogisticModelFinal_train)
+
+coefficient = data.frame(summary(LogisticModelFinal_train)$coef[,4])
+
+
+names(coefficient)<-c("Pvalue")
+
+
+bg.picker <- function(z){
+  if(is.na(z)){return("black")}
+  else if(z > 0.05){return("pink")}
+  else {return("lightgreen")}
+}
+
+formattable(coefficient, list(
+   Pvalue= formatter("span",
+       style = x ~ style(display = "block", "border-radius" = "10px",
+       "padding-right" = "10px",
+       "background-color" = sapply(x,bg.picker)),
+   x ~ sprintf("%.10f (rank: %02d)", x, rank(x))))
+   )
+```
+
+```{r}
+#odds ratio and CI
+
+exp(cbind(OddsRatio=coef(LogisticModelFinal_train),confint(LogisticModelFinal_train)))
+
+```
+```{r}
+#Anovamodel
+anova(LogisticModelFinal_train,test="Chisq")
+
+```
+
+```{r}
+
+#plotting the ROC plot
+#Assessing the predictive ability of the model
+Test<-read.table('Test.csv', sep =",", header = TRUE)
+pacman::p_load(ROCR)
+fitted.results <-predict(LogisticModelFinal_train,Train,type='response')
+fitted2.results <-predict(LogisticModelFinal_train,Test,type='response')
+
+pred <- prediction(fitted.results, Train$Subscribed)
+pred2<-prediction(fitted2.results, Test$Subscribed)
+roc.perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+roc2.perf <- performance(pred2, measure = "tpr", x.measure = "fpr")
+x = cbind(roc.perf,roc2.perf)
+auc.train <- performance(pred, measure = "auc")
+auc.train <- auc.train@y.values
+
+auc.test <- performance(pred2, measure = "auc")
+auc.test <- auc.test@y.values
+
+#Plot ROC
+plot(roc.perf)
+plot(roc2.perf, add = TRUE, col = 'red')
+abline(a=0, b= 1)
+text(x = .40, y = .6,paste("AUC Train = ", round(auc.train[[1]],3), sep = ""))
+text(x = .39, y = .53,paste("AUC Test = ", round(auc.test[[1]],3), sep = ""), col = 'red')
+
+```
+
+
+
+
+
+```{r}
+
+#Assessing the predictive ability of the model
+Test<-read.table('Test.csv', sep =",", header = TRUE)
+fitted.probs <-predict(LogisticModelFinal_train, Test,type='response')
+
+fitted.predictions <- ifelse(fitted.probs > 0.5,1,0) # significance level is 0.5
+
+#check results of classfication
+misClasificError <- mean(fitted.predictions != Test$Subscribed)
+
+(table(fitted.predictions,Test$Subscribed))
+
+print("/n")
+print(paste('Model Accuracy',1-misClasificError))
+
+ #(1951+75)/(1951+75+189+46)
+
+```
+
+```{r}
+sessionInfo()
+```
+
