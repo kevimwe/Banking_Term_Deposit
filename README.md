@@ -315,7 +315,7 @@ A
 
 
 
-![png](output_13_1.png)
+![png](data/output_13_1.png)
 
 
 
@@ -331,7 +331,7 @@ ggpar(q, font.legend = 16)
 
 
 
-![png](output_14_1.png)
+![png](data/output_14_1.png)
 
 
 visualized ad-hoc A/B test shows that job type is an important variable in deciding the subscription for term deposit. 
@@ -366,7 +366,7 @@ grid.arrange(B, tableGrob(A), ncol=1)
 ```
 
 
-![png](output_18_0.png)
+![png](data/output_18_0.png)
 
 
 The dashed red-line shows the mean for the entire training data set (258 sec).  Contact duration for the group of clients `Subscribed` (**1**) to the term deposit is higher than that for the group `not Subscribed` (**0**). Note  greater than 400 seconds has a higher likelihood of a yes to the subscription.  
@@ -421,7 +421,7 @@ q +  font("title", size = 14, color = "red", face = "bold.italic")+
 
 
 
-![png](output_21_1.png)
+![png](data/output_21_1.png)
 
 
 The heat map above visually indicates that call duration is critical for term Subscription. The subscirbed clients tended to have longer call durations
@@ -1087,7 +1087,7 @@ plt.grid(True)
 
 
 
-![png](output_67_1.png)
+![png](data/output_67_1.png)
 
 
 Corss validation accuracy for both `Logistic regression`  and  `Random Forest` Classifiers  levels off with ~60% of the features, after which there is no significant gain in accuracy with addition of more features.
@@ -1577,23 +1577,23 @@ main(data =dataM, Response='Subscribed', n_folds=10)
 
 
 
-![png](output_78_2.png)
+![png](data/output_78_2.png)
 
 
 
-![png](output_78_3.png)
+![png](data/output_78_3.png)
 
 
 
-![png](output_78_4.png)
+![png](data/output_78_4.png)
 
 
 
-![png](output_78_5.png)
+![png](data/output_78_5.png)
 
 
 
-![png](output_78_6.png)
+![png](data/output_78_6.png)
 
 
 Results of hyperparamater search are saved in results folder. As summarised above, the two algorithms are pretty comparable  in terms of accuracy, f1_score and roc_auc_score when the best set of hyperparmaters is considered for each .  `Logistic regression` slightly out performs `Random Forest` classifier in terms of precion and recall.
@@ -1604,7 +1604,7 @@ Model performance are verified in terms of accuracy.
 
 
 ```python
-# pickle test and training data for reproducability
+# pickle test and training data for reproducabilityta
 
 filename1 = 'data/X_train.csv'
 filename2 = 'data/y_train.csv'
@@ -1790,7 +1790,7 @@ plt.title('Logistic Regression top 20 features ranked by importance')
 
 
 
-![png](output_87_2.png)
+![png](data/output_87_2.png)
 
 
 **Random Forest**
@@ -1845,7 +1845,7 @@ plt.title('Random Forest Features importance')
 
 
 
-![png](output_89_2.png)
+![png](data/output_89_2.png)
 
 
 Above, top 20 most important features for both Logistic regression and Random Forest classifiers are shown. `duration`, ,`housing`, `marital status` and `age` top the features in terms of importance.
@@ -1902,7 +1902,7 @@ plot_confusionMat(lr_clf_cv, 'Logistic Regression')
 ```
 
 
-![png](output_96_0.png)
+![png](data/output_96_0.png)
 
 
 **Random Forest**
@@ -1924,7 +1924,7 @@ plot_confusionMat(rf_clf_cv, 'Random Forest')
 ```
 
 
-![png](output_99_0.png)
+![png](data/output_99_0.png)
 
 
 **Training vs Test accuracy Summary**
