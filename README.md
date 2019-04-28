@@ -682,7 +682,7 @@ Modeling<a class="anchor" id="modeling"></a>
 
 Below is a flow chart of modeling approach.
 
-<img src="reference/dataSplitting.png" width="600" height="600" />
+<img src="data/dataSplitting.png" width="600" height="600" />
 
 #### Create test and training set <a class="anchor" id="testandtrain"></a>
 
